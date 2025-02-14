@@ -54,4 +54,3 @@ while(np.linalg.norm(v_curr - v_prev) > epsilon):
 
 for val in v_curr:
   print("{:.10f}".format(val[0]))
-print(sum(v_curr))
