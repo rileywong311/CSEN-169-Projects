@@ -30,9 +30,8 @@ n = count + 1
 M = np.zeros((n, n))
 
 for row in range(n):
-  for col in range(n):
-    if col in incoming_pages[row]:
-      M[row][col] = 1/outgoing_count[col]
+  for col in incoming_pages[row]:
+    M[row][col] = 1/outgoing_count[col]
 
 # print(M)
 
