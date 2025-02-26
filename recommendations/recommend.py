@@ -8,8 +8,8 @@ def cosine_similarity(v1, v2):
   return np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2))
 
 
+K = 30
 def v1(train_filename, test_filename, out_filename):
-  K = 10
 
   data = get_data_dict(train_filename)
 
@@ -44,7 +44,7 @@ def v1(train_filename, test_filename, out_filename):
       results.append((U, M, 3))
     else:
       weighted_average = sum([neighbor[0] * data[neighbor[1]][M] for neighbor in min_heap]) / sum([neighbor[0] for neighbor in min_heap])
-      print([f"{neighbor[0]} * {data[neighbor[1]][M]}" for neighbor in min_heap], "=", weighted_average)
+      # print([f"{neighbor[0]} * {data[neighbor[1]][M]}" for neighbor in min_heap], "=", weighted_average)
       results.append((U, M, round(weighted_average)))
 
   ifile.close()
@@ -54,6 +54,4 @@ def v1(train_filename, test_filename, out_filename):
     ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
   ofile.close()
 
-v1("train.txt", "test5.txt", "results/result5.txt")
-v1("train.txt", "test10.txt", "results/result10.txt")
-v1("train.txt", "test20.txt", "results/result20.txt")
+  return results
