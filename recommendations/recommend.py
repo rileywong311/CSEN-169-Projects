@@ -1,6 +1,7 @@
 from parse import get_data_dict
 from collections import defaultdict
 import numpy as np
+import heapq
 
 
 def cosine_similarity(v1, v2):
@@ -8,6 +9,8 @@ def cosine_similarity(v1, v2):
 
 
 def v1(train_filename, test_filename, out_filename):
+  K = 10
+
   data = get_data_dict(train_filename)
 
   test = defaultdict(dict)
@@ -20,7 +23,7 @@ def v1(train_filename, test_filename, out_filename):
       test[U][M] = R
       continue
     
-    closest = {"user": 0, "sim": 0}
+    min_heap = []
     for user in data:
       if M not in data[user]:
         continue
@@ -30,14 +33,19 @@ def v1(train_filename, test_filename, out_filename):
         v1 = np.array([test[U][movie] for movie in intersect])
         v2 = np.array([data[user][movie] for movie in intersect])
         sim = cosine_similarity(v1, v2)
-        closest = max((closest, {"user": user, "sim": sim}), key=lambda x: x["sim"])
+        if len(min_heap) < K:
+          heapq.heappush(min_heap, (sim, user))
+        else:
+          heapq.heappushpop(min_heap, (sim, user))
         # print(v1, "vs.", v2, "=", sim)
     
-    if not closest["user"]:
+    if not min_heap:
       print(f"{test_filename} : No user similar to {U} found with movie rating on {M}")
       results.append((U, M, 3))
     else:
-      results.append((U, M, data[closest["user"]][M]))
+      weighted_average = sum([neighbor[0] * data[neighbor[1]][M] for neighbor in min_heap]) / sum([neighbor[0] for neighbor in min_heap])
+      print([f"{neighbor[0]} * {data[neighbor[1]][M]}" for neighbor in min_heap], "=", weighted_average)
+      results.append((U, M, round(weighted_average)))
 
   ifile.close()
 
