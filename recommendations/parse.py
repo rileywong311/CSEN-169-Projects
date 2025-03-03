@@ -37,3 +37,11 @@ def get_data_averages(filename):
   rows, cols = data.shape
   averages = [avg([data[row][col] for row in range(rows) if data[row][col] != 0]) for col in range(cols)]
   return averages
+
+
+def get_data_IUFs(filename):
+  data = get_data_matrix(filename)
+  rows, cols = data.shape
+  counts = [len([data[row][col] for row in range(rows) if data[row][col] != 0]) for col in range(cols)]
+  IUFs = list(map(lambda count: np.log2(rows/count) if count else np.log2(rows), counts))
+  return IUFs

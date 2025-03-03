@@ -68,7 +68,7 @@ def generate_train_test_split(train_filename, sections):
   ofile7.close()
 
 
-def train_test(func):
+def train_test(func, K=30):
   def get_mae(results, ans):
     diffs = []
     for i, line in enumerate(ans):
@@ -80,19 +80,19 @@ def train_test(func):
       diffs.append(diff)
     return np.average(diffs)
 
-  results5 = func("train_test/train.txt", "train_test/test5.txt", "results/result5.txt")
+  results5 = func("train_test/train.txt", "train_test/test5.txt", None, K=K)
   ifile = open("train_test/ans5.txt")
   mae5 = get_mae(results5, ifile.readlines())
   ifile.close()
 
-  results10 = func("train_test/train.txt", "train_test/test10.txt", "results/result10.txt")
+  results10 = func("train_test/train.txt", "train_test/test10.txt", None, K=K)
   ifile = open("train_test/ans5.txt")
   mae10 = get_mae(results10, ifile.readlines())
   ifile.close()
 
-  results20 = func("train_test/train.txt", "train_test/test20.txt", "results/result20.txt")
+  results20 = func("train_test/train.txt", "train_test/test20.txt", None, K=K)
   ifile = open("train_test/ans5.txt")
   mae20 = get_mae(results20, ifile.readlines())
   ifile.close()
 
-  return f"MAE5 = {mae5}\nMAE10 = {mae10}\nMAE20 = {mae20}"
+  return mae5, mae10, mae20
