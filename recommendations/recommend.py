@@ -258,3 +258,63 @@ def v4(train_filename, test_filename, out_filename, K=30):
     ofile.close()
 
   return results
+
+def v5(train_filename, test_filename, out_filename, K=30):
+  power=1.5
+  data = get_data_dict(train_filename)
+
+  test = defaultdict(dict)  
+  results = []
+  ifile = open(test_filename)
+  
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      test[U][M] = R
+      continue
+    
+    center1 = np.average(list(test[U].values()))
+    min_heap = []
+    for user in data:
+      if M not in data[user]:
+        continue
+      intersect = set(test[U].keys()) & set(data[user].keys())
+      # if len(intersect) > 1:
+      if intersect:
+        center2 = np.average(list(data[user].values()))
+        IUF_center1 = np.average([get_movie_IUF(movie) * test[U][movie] for movie in test[U]])
+        IUF_center2 = np.average([get_movie_IUF(movie) * data[user][movie] for movie in data[user]])
+        IUF_v1 = np.array([get_movie_IUF(movie) * test[U][movie] for movie in intersect])
+        IUF_v2 = np.array([get_movie_IUF(movie) * data[user][movie] for movie in intersect])
+        w = pearson_correlation(IUF_v1, IUF_center1, IUF_v2, IUF_center2)
+        w = w * (abs(w)**power)
+        n = w * (data[user][M] - center2)
+        d = abs(w)
+        if len(min_heap) < K:
+          heapq.heappush(min_heap, (d, n))
+        else:
+          heapq.heappushpop(min_heap, (d, n))
+    
+    numer = [i[1] for i in min_heap]
+    denom = [i[0] for i in min_heap]
+    if not (numer and denom):
+      print(f"{test_filename} : No user similar to {U} found with movie rating on {M}")
+      results.append((U, M, 3))
+    elif not sum(denom):
+      print(f"{test_filename} : User {U} has sum(w) = 0")
+      results.append((U, M, 3))
+    else:
+      p = round(center1 + sum(numer)/sum(denom))
+      p = max(1, min(p, 5))
+      results.append((U, M, p))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results
