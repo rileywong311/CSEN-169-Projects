@@ -1,4 +1,4 @@
-from parse import get_data_dict, get_data_averages, get_data_IUFs
+from parse import get_data_dict, get_data_dict_T, get_data_averages, get_data_IUFs
 from collections import defaultdict
 import numpy as np
 import heapq
@@ -318,3 +318,54 @@ def v5(train_filename, test_filename, out_filename, K=30):
     ofile.close()
 
   return results
+
+
+def v6(train_filename, test_filename, out_filename, K=100):
+  data = get_data_dict_T(train_filename)
+
+  test = defaultdict(dict)
+  results = []
+  ifile = open(test_filename)
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      test[U][M] = R
+      continue
+    
+    item_similarities = []
+    for movie in test[U]:
+      # print(movie)
+      v1 = []
+      v2 = []
+      for user in data[movie]:
+        if user in data[M]:
+          # print(f"{user} rated {movie} and {M}")
+          v1.append(data[movie][user])
+          v2.append(data[M][user])
+      if len(v1) == 0:
+        sim = 0
+      else:
+        sim = cosine_similarity(np.array(v1), np.array(v2))
+      item_similarities.append((sim, movie))
+
+    
+    item_similarities = sorted(item_similarities, reverse=True)[:K]
+    # print(f"user {U} on movie {M} has {item_similarities}")
+    if sum([i[0] for i in item_similarities]) == 0:
+      print(f"{test_filename} : User {U} with on rating for movie {M} has no item similarities")
+      results.append((U, M, 3))
+    else:
+      weighted_average = sum([i[0] * test[U][i[1]] for i in item_similarities]) / sum([i[0] for i in item_similarities])
+      results.append((U, M, round(weighted_average)))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results
+
