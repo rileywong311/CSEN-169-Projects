@@ -17,6 +17,16 @@ def get_data_dict(filename):
   return data
 
 
+def get_data_dict_T(filename):
+  data = defaultdict(dict)
+  ifile = open(filename)
+  for line in ifile:
+    U, M, R = map(int, line.split())
+    data[M][U] = R
+  ifile.close()
+  return data
+
+
 def get_data_matrix(filename):
   data = np.empty((200, 1000))
   ifile = open(filename)

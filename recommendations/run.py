@@ -1,6 +1,6 @@
 import recommend
 
-do = 6
+do = 8
 
 # -----------------
 # USER-BASED COSINE
@@ -55,3 +55,21 @@ if do == 6:
   recommend.v6("train.txt", "test5.txt", "results/result5.txt")
   recommend.v6("train.txt", "test10.txt", "results/result10.txt")
   recommend.v6("train.txt", "test20.txt", "results/result20.txt")
+
+# ---------------------------------------------
+# USER-BASED COSINE IUF
+# ---------------------------------------------
+
+if do == 7:
+  recommend.v7("train.txt", "test5.txt", "results/result5.txt")
+  recommend.v7("train.txt", "test10.txt", "results/result10.txt")
+  recommend.v7("train.txt", "test20.txt", "results/result20.txt")
+
+# ---------------------------------------------
+# USER-BASED COSINE IUF
+# ---------------------------------------------
+
+if do == 8:
+  recommend.v8("train.txt", "test5.txt", "results/result5.txt")
+  recommend.v8("train.txt", "test10.txt", "results/result10.txt")
+  recommend.v8("train.txt", "test20.txt", "results/result20.txt")
