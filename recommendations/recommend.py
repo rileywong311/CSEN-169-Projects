@@ -70,6 +70,7 @@ def v1(train_filename, test_filename, out_filename, K=30):
         continue
       intersect = set(test[U].keys()) & set(data[user].keys())
       # print(U, "&", user, "=", intersect)
+      # if len(intersect) > 1:
       if intersect:
         v1 = np.array([test[U][movie] for movie in intersect])
         v2 = np.array([data[user][movie] for movie in intersect])
@@ -634,6 +635,7 @@ def do_pearson_IIUF(U, M, data, test, K):
       IIUF_v1 = np.array([get_movie_IIUF(movie) * test[U][movie] for movie in intersect])
       IIUF_v2 = np.array([get_movie_IIUF(movie) * data[user][movie] for movie in intersect])
       w = pearson_correlation(IIUF_v1, IIUF_center1, IIUF_v2, IIUF_center2)
+      w = w * np.sqrt(len(intersect))
       n = w * (data[user][M] - center2)
       d = abs(w)
       if len(min_heap) < K:
@@ -697,6 +699,7 @@ def do_cosine(U, M, data, test, K):
       v1 = np.array([test[U][movie] for movie in intersect])
       v2 = np.array([data[user][movie] for movie in intersect])
       sim = cosine_similarity(v1, v2)
+      sim = sim * np.sqrt(len(intersect))
       if len(min_heap) < K:
         heapq.heappush(min_heap, (sim, user))
       else:
@@ -763,3 +766,69 @@ def v14(train_filename, test_filename, out_filename, K=None):
       ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
     ofile.close()
   return results
+
+
+def v15(train_filename, test_filename, out_filename, K=50):
+  data = get_data_dict(train_filename)
+  test = defaultdict(dict)  
+
+  results = []
+  ifile = open(test_filename)
+  
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      test[U][M] = R
+      continue
+      
+    rating = do_cosine(U, M, data, test, K=K)
+    if not rating:
+      rating = get_movie_average(M)
+    results.append((U, M, rating))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results
+
+
+def v16(train_filename, test_filename, out_filename, K=40):
+  data = get_data_dict(train_filename)
+  test = defaultdict(dict)  
+
+  results = []
+  ifile = open(test_filename)
+  
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      test[U][M] = R
+      continue
+    
+    stddev = get_movie_stddev(M)
+    rating = None
+    if stddev is not None and stddev < 0.7:
+      rating = get_movie_average(M)
+    if not rating:
+      rating = do_pearson(U, M, data, test, K=K)
+    if not rating:
+      rating = 3
+    results.append((U, M, rating))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results
+

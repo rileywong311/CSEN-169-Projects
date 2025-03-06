@@ -1,6 +1,6 @@
 import recommend
 
-do = 14
+do = 99
 
 # -----------------
 # USER-BASED COSINE
@@ -94,7 +94,7 @@ if do == 10:
   recommend.v10("train.txt", "test20.txt", "results/result20.txt")
 
 # ---------------------------------------------
-# STD. DEV. THRESHOLD > USER-BASED PEARSON
+# STD. DEV. THRESHOLD > USER-BASED PEARSON IUF
 # ---------------------------------------------
 
 if do == 11:
@@ -130,3 +130,33 @@ if do == 14:
   recommend.v14("train.txt", "test5.txt", "results/result5.txt")
   recommend.v14("train.txt", "test10.txt", "results/result10.txt")
   recommend.v14("train.txt", "test20.txt", "results/result20.txt")
+
+
+# ---------------------------------------------
+# USER-BASED COSINE > AVERAGE RATING
+# ---------------------------------------------
+
+if do == 15:
+  recommend.v15("train.txt", "test5.txt", "results/result5.txt")
+  recommend.v15("train.txt", "test10.txt", "results/result10.txt")
+  recommend.v15("train.txt", "test20.txt", "results/result20.txt")
+
+
+# ---------------------------------------------
+# STD. DEV. THRESHOLD > USER-BASED PEARSON IIUF
+# ---------------------------------------------
+
+if do == 16:
+  recommend.v16("train.txt", "test5.txt", "results/result5.txt")
+  recommend.v16("train.txt", "test10.txt", "results/result10.txt")
+  recommend.v16("train.txt", "test20.txt", "results/result20.txt")
+
+# ---------------------------------------------
+# BEST VERSIONS
+# ---------------------------------------------
+
+if do == 99:
+  recommend.v9("train.txt", "test5.txt", "results/result5.txt")
+  # recommend.v12("train.txt", "test5.txt", "results/result5.txt", K=60)
+  recommend.v12("train.txt", "test10.txt", "results/result10.txt", K=50)
+  recommend.v12("train.txt", "test20.txt", "results/result20.txt", K=50)

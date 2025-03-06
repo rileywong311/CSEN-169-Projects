@@ -73,13 +73,13 @@ def get_data_credited_averages(filename):
     for user in data[movie]:
         # credit = np.sqrt(len(data[user]))
         # credit = len(data[user])
-        # credit = np.log2(200/len(data[user]))
-        stddev = np.std(list(data2[user].values()))
+        credit = np.log2(200/len(data[user]))
+        # stddev = np.std(list(data2[user].values()))
         # print(stddev)
-        if stddev == 0:
-          credit = 0.5
-        else:
-          credit = stddev**2
+        # if stddev == 0:
+        #   credit = 0.5
+        # else:
+        #   credit = stddev**2
       
         denom += credit
         numer += data[movie][user] * credit
