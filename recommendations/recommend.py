@@ -1,4 +1,4 @@
-from parse import get_data_dict, get_data_dict_T, get_data_averages, get_data_IUFs
+from parse import get_data_dict, get_data_dict_T, get_data_stddev, get_data_averages, get_data_IUFs, get_data_Inverse_IUFs, get_data_credited_averages
 from collections import defaultdict
 import numpy as np
 import heapq
@@ -10,9 +10,29 @@ def get_movie_average(movie):
     return 3
   return round(result)
 
+credited_averages = get_data_credited_averages('train.txt')
+def get_movie_credited_average(movie):
+  result = credited_averages[movie-1]
+  if not result:
+    return 3
+  return round(result)
+
+# print(averages[:5])
+# print(credited_averages[:5])
+
 IUFs = get_data_IUFs('train.txt')
 def get_movie_IUF(movie):
   result = IUFs[movie-1]
+  return result
+
+IIUFs = get_data_Inverse_IUFs('train.txt')
+def get_movie_IIUF(movie):
+  result = IIUFs[movie-1]
+  return result
+
+stddevs = get_data_stddev('train.txt')
+def get_movie_stddev(movie):
+  result = stddevs[movie-1]
   return result
 
 
@@ -415,63 +435,66 @@ def v7(train_filename, test_filename, out_filename, K=30):
   return results
 
 
-def v8(train_filename, test_filename, out_filename, K=(40, 20)):
-  def do_pearson(U, M, data, test, K):
-    center1 = np.average(list(test[U].values()))
-    min_heap = []
-    for user in data:
-      if M not in data[user]:
-        continue
-      intersect = set(test[U].keys()) & set(data[user].keys())
-      # if len(intersect) > 1:
-      if intersect:
-        center2 = np.average(list(data[user].values()))
-        IUF_center1 = np.average([get_movie_IUF(movie) * test[U][movie] for movie in test[U]])
-        IUF_center2 = np.average([get_movie_IUF(movie) * data[user][movie] for movie in data[user]])
-        IUF_v1 = np.array([get_movie_IUF(movie) * test[U][movie] for movie in intersect])
-        IUF_v2 = np.array([get_movie_IUF(movie) * data[user][movie] for movie in intersect])
-        w = pearson_correlation(IUF_v1, IUF_center1, IUF_v2, IUF_center2)
-        n = w * (data[user][M] - center2)
-        d = abs(w)
-        if len(min_heap) < K:
-          heapq.heappush(min_heap, (d, n))
-        else:
-          heapq.heappushpop(min_heap, (d, n))
-    
-    numer = [i[1] for i in min_heap]
-    denom = [i[0] for i in min_heap]
 
-    if not (numer and denom):
-      # print(f"{test_filename} : No user similar to {U} found with movie rating on {M}")
-      return None
-    if not sum(denom):
-      # print(f"{test_filename} : User {U} has sum(w) = 0")
-      return None
-    p = round(center1 + sum(numer)/sum(denom))
-    p = max(1, min(p, 5))
-    return p
-  
-  def do_item_cosine(U, M, data, test, K):
-    item_similarities = []
-    for movie in test[U]:
-      v1 = []
-      v2 = []
-      for user in data[movie]:
-        if user in data[M]:
-          v1.append(data[movie][user])
-          v2.append(data[M][user])
-      if len(v1) == 0:
-        sim = 0
+
+def do_pearson(U, M, data, test, K):
+  center1 = np.average(list(test[U].values()))
+  min_heap = []
+  for user in data:
+    if M not in data[user]:
+      continue
+    intersect = set(test[U].keys()) & set(data[user].keys())
+    # if len(intersect) > 1:
+    if intersect:
+      center2 = np.average(list(data[user].values()))
+      IUF_center1 = np.average([get_movie_IUF(movie) * test[U][movie] for movie in test[U]])
+      IUF_center2 = np.average([get_movie_IUF(movie) * data[user][movie] for movie in data[user]])
+      IUF_v1 = np.array([get_movie_IUF(movie) * test[U][movie] for movie in intersect])
+      IUF_v2 = np.array([get_movie_IUF(movie) * data[user][movie] for movie in intersect])
+      w = pearson_correlation(IUF_v1, IUF_center1, IUF_v2, IUF_center2)
+      n = w * (data[user][M] - center2)
+      d = abs(w)
+      if len(min_heap) < K:
+        heapq.heappush(min_heap, (d, n))
       else:
-        sim = cosine_similarity(np.array(v1), np.array(v2))
-      item_similarities.append((sim, movie))
-    item_similarities = sorted(item_similarities, reverse=True)[:K]
-    if sum([i[0] for i in item_similarities]) == 0:
-      print(f"{test_filename} : User {U} with on rating for movie {M} has no item similarities")
-      return None
-    result = sum([i[0] * test[U][i[1]] for i in item_similarities]) / sum([i[0] for i in item_similarities])
-    return result
+        heapq.heappushpop(min_heap, (d, n))
+  
+  numer = [i[1] for i in min_heap]
+  denom = [i[0] for i in min_heap]
 
+  if not (numer and denom):
+    # print(f"{test_filename} : No user similar to {U} found with movie rating on {M}")
+    return None
+  if not sum(denom):
+    # print(f"{test_filename} : User {U} has sum(w) = 0")
+    return None
+  p = round(center1 + sum(numer)/sum(denom))
+  p = max(1, min(p, 5))
+  return p
+
+def do_item_cosine(U, M, data, test, K):
+  item_similarities = []
+  for movie in test[U]:
+    v1 = []
+    v2 = []
+    for user in data[movie]:
+      if user in data[M]:
+        v1.append(data[movie][user])
+        v2.append(data[M][user])
+    if len(v1) == 0:
+      sim = 0
+    else:
+      sim = cosine_similarity(np.array(v1), np.array(v2))
+    item_similarities.append((sim, movie))
+  item_similarities = sorted(item_similarities, reverse=True)[:K]
+  if sum([i[0] for i in item_similarities]) == 0:
+    # print(f"{test_filename} : User {U} with on rating for movie {M} has no item similarities")
+    return None
+  result = sum([i[0] * test[U][i[1]] for i in item_similarities]) / sum([i[0] for i in item_similarities])
+  return result
+
+
+def v8(train_filename, test_filename, out_filename, K=(40, 20)):
   data = get_data_dict(train_filename)
   test = defaultdict(dict)  
 
@@ -502,4 +525,241 @@ def v8(train_filename, test_filename, out_filename, K=(40, 20)):
       ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
     ofile.close()
 
+  return results
+
+
+def v9(train_filename, test_filename, out_filename, K=None):
+  results = []
+  ifile = open(test_filename)
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      continue
+
+    results.append((U, M, get_movie_average(M)))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+  return results
+
+
+def v10(train_filename, test_filename, out_filename, K=40):
+  data = get_data_dict(train_filename)
+  test = defaultdict(dict)  
+
+  results = []
+  ifile = open(test_filename)
+  
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      test[U][M] = R
+      continue
+    
+    rating = do_pearson(U, M, data, test, K)
+    if not rating:
+      print(f"{test_filename} : Pearson Correlation fail on user {U} and movie {M} ", end="")
+      rating = get_movie_average(M)
+      print(f"setting rating to average = {rating}")
+    results.append((U, M, rating))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results
+
+
+def v11(train_filename, test_filename, out_filename, K=40):
+  data = get_data_dict(train_filename)
+  test = defaultdict(dict)  
+
+  results = []
+  ifile = open(test_filename)
+  
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      test[U][M] = R
+      continue
+    
+    stddev = get_movie_stddev(M)
+    rating = None
+    if stddev is not None and stddev < 1.2:
+      rating = get_movie_average(M)
+    if not rating:
+      # print(f"{test_filename} : Bad stddev => doing pearson on user {U} and movie {M}")
+      rating = do_pearson(U, M, data, test, K=K)
+    if not rating:
+      # print(f"\tBad pearson => defaulting to 3")
+      rating = 3
+    results.append((U, M, rating))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results
+
+
+
+def do_pearson_IIUF(U, M, data, test, K):
+  center1 = np.average(list(test[U].values()))
+  min_heap = []
+  for user in data:
+    if M not in data[user]:
+      continue
+    intersect = set(test[U].keys()) & set(data[user].keys())
+    # if len(intersect) > 1:
+    if intersect:
+      center2 = np.average(list(data[user].values()))
+      IIUF_center1 = np.average([get_movie_IIUF(movie) * test[U][movie] for movie in test[U]])
+      IIUF_center2 = np.average([get_movie_IIUF(movie) * data[user][movie] for movie in data[user]])
+      IIUF_v1 = np.array([get_movie_IIUF(movie) * test[U][movie] for movie in intersect])
+      IIUF_v2 = np.array([get_movie_IIUF(movie) * data[user][movie] for movie in intersect])
+      w = pearson_correlation(IIUF_v1, IIUF_center1, IIUF_v2, IIUF_center2)
+      n = w * (data[user][M] - center2)
+      d = abs(w)
+      if len(min_heap) < K:
+        heapq.heappush(min_heap, (d, n))
+      else:
+        heapq.heappushpop(min_heap, (d, n))
+  
+  numer = [i[1] for i in min_heap]
+  denom = [i[0] for i in min_heap]
+
+  if not (numer and denom):
+    # print(f"{test_filename} : No user similar to {U} found with movie rating on {M}")
+    return None
+  if not sum(denom):
+    # print(f"{test_filename} : User {U} has sum(w) = 0")
+    return None
+  p = round(center1 + sum(numer)/sum(denom))
+  p = max(1, min(p, 5))
+  return p
+
+
+def v12(train_filename, test_filename, out_filename, K=40):
+  data = get_data_dict(train_filename)
+  test = defaultdict(dict)  
+
+  results = []
+  ifile = open(test_filename)
+  
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      test[U][M] = R
+      continue
+    
+    rating = do_pearson_IIUF(U, M, data, test, K)
+    if not rating:
+      print(f"{test_filename} : Pearson Correlation fail on user {U} and movie {M} ", end="")
+      rating = get_movie_average(M)
+      print(f"setting rating to average = {rating}")
+    results.append((U, M, rating))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results
+
+
+def do_cosine(U, M, data, test, K):
+  min_heap = []
+  for user in data:
+    if M not in data[user]:
+      continue
+    intersect = set(test[U].keys()) & set(data[user].keys())
+    if intersect:
+      v1 = np.array([test[U][movie] for movie in intersect])
+      v2 = np.array([data[user][movie] for movie in intersect])
+      sim = cosine_similarity(v1, v2)
+      if len(min_heap) < K:
+        heapq.heappush(min_heap, (sim, user))
+      else:
+        heapq.heappushpop(min_heap, (sim, user))
+  if not min_heap:
+    return None
+  else:
+    return round(sum([neighbor[0] * data[neighbor[1]][M] for neighbor in min_heap]) / sum([neighbor[0] for neighbor in min_heap]))
+
+
+def v13(train_filename, test_filename, out_filename, K=40):
+  data = get_data_dict(train_filename)
+  test = defaultdict(dict)  
+
+  results = []
+  ifile = open(test_filename)
+  
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      test[U][M] = R
+      continue
+    
+    stddev = get_movie_stddev(M)
+    rating = None
+    if stddev is not None and stddev < 1.2:
+      rating = get_movie_average(M)
+    if not rating:
+      # print(f"{test_filename} : Bad stddev => doing correlation on user {U} and movie {M}")
+      rating = do_cosine(U, M, data, test, K=K)
+    if not rating:
+      # print(f"\tBad correlation => defaulting to average")
+      rating = get_movie_average(M)
+    results.append((U, M, rating))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results
+
+
+def v14(train_filename, test_filename, out_filename, K=None):
+  results = []
+  ifile = open(test_filename)
+  for line in ifile:
+    U, M, R = map(int, line.split())
+
+    if R:
+      continue
+
+    results.append((U, M, get_movie_credited_average(M)))
+
+  ifile.close()
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
   return results
