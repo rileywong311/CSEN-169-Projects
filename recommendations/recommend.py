@@ -832,3 +832,32 @@ def v16(train_filename, test_filename, out_filename, K=40):
 
   return results
 
+
+
+def v17(train_filename, test_filename, out_filename, K=(1, 1, 1, 1, 1)):
+  results1 = v9(train_filename, test_filename, out_filename, K=None) # just averages
+  results2 = v12(train_filename, test_filename, out_filename, K=50) # pearson IIUF and SQRT(intersect)
+  results3 = v1(train_filename, test_filename, out_filename, K=40) # user-based cosine
+  results4 = v6(train_filename, test_filename, out_filename, K=20) # item-based cosine
+  results5 = v3(train_filename, test_filename, out_filename, K=50) # pearson IUF
+  
+
+  assert(len(results1) == len(results2) == len(results3) == len(results4) == len(results5))
+  results = []
+  for i in range(len(results1)):
+    rating = sum([K[0] * results1[i][2], 
+                  K[1] * results2[i][2], 
+                  K[2] * results3[i][2], 
+                  K[3] * results4[i][2]], 
+                  K[4] * results5[i][2]) / sum(K)
+
+    results.append((results1[i][0], results1[i][1], round(rating)))
+    # print(results[i])
+
+  if out_filename:
+    ofile = open(out_filename, "w")
+    for result in results:
+      ofile.write(f"{result[0]} {result[1]} {result[2]}\n")
+    ofile.close()
+
+  return results

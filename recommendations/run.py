@@ -1,6 +1,6 @@
 import recommend
 
-do = 99
+do = 17
 
 # -----------------
 # USER-BASED COSINE
@@ -150,6 +150,16 @@ if do == 16:
   recommend.v16("train.txt", "test5.txt", "results/result5.txt")
   recommend.v16("train.txt", "test10.txt", "results/result10.txt")
   recommend.v16("train.txt", "test20.txt", "results/result20.txt")
+
+
+# ---------------------------------------------
+# ENSEMBLE
+# ---------------------------------------------
+
+if do == 17:
+  recommend.v17("train.txt", "test5.txt", "results/result5.txt", K=(2, 2, 1, 1, 1))
+  recommend.v17("train.txt", "test10.txt", "results/result10.txt", K=(2, 2, 1, 1, 1))
+  recommend.v17("train.txt", "test20.txt", "results/result20.txt", K=(2, 2, 1, 1, 1))
 
 # ---------------------------------------------
 # BEST VERSIONS
