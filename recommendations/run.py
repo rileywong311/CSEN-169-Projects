@@ -1,6 +1,7 @@
 import recommend
+import ensemble
 
-do = 17
+do = 18
 
 # -----------------
 # USER-BASED COSINE
@@ -157,16 +158,24 @@ if do == 16:
 # ---------------------------------------------
 
 if do == 17:
-  recommend.v17("train.txt", "test5.txt", "results/result5.txt", K=(2, 2, 1, 1, 1))
-  recommend.v17("train.txt", "test10.txt", "results/result10.txt", K=(2, 2, 1, 1, 1))
-  recommend.v17("train.txt", "test20.txt", "results/result20.txt", K=(2, 2, 1, 1, 1))
+  # recommend.v17("train.txt", "test5.txt", "results/result5.txt", K=(1, 2, 1, 1, 1))
+  # recommend.v17("train.txt", "test10.txt", "results/result10.txt", K=(1, 2, 1, 1, 1))
+  # recommend.v17("train.txt", "test20.txt", "results/result20.txt", K=(1, 2, 1, 1, 1))
+
+  recommend.v17("train.txt", "test5.txt", "results/result5_1.txt", K=(2, 2, 1, 1, 0))
+  recommend.v17("train.txt", "test10.txt", "results/result10_1.txt", K=(2, 2, 1, 1, 1))
+  recommend.v17("train.txt", "test20.txt", "results/result20_1.txt", K=(2, 2, 1, 1, 1))
 
 # ---------------------------------------------
-# BEST VERSIONS
+# ENSEMBLE MODIFIED
 # ---------------------------------------------
 
-if do == 99:
-  recommend.v9("train.txt", "test5.txt", "results/result5.txt")
-  # recommend.v12("train.txt", "test5.txt", "results/result5.txt", K=60)
-  recommend.v12("train.txt", "test10.txt", "results/result10.txt", K=50)
-  recommend.v12("train.txt", "test20.txt", "results/result20.txt", K=50)
+if do == 18:
+  print("18")
+  ensemble.ensemble("train.txt", "test5.txt", "results/result5.txt", K=(2, 2, 2, 1, 1))
+  ensemble.ensemble("train.txt", "test10.txt", "results/result10.txt", K=(2, 2, 2, 1, 1))
+  ensemble.ensemble("train.txt", "test20.txt", "results/result20.txt", K=(2, 2, 2, 1, 1))
+
+  # ensemble.ensemble("train.txt", "test5.txt", "results/result5_3.txt", K=(2, 2, 2, 1, 1))
+  # ensemble.ensemble("train.txt", "test10.txt", "results/result10_3.txt", K=(2, 2, 2, 1, 1))
+  # ensemble.ensemble("train.txt", "test20.txt", "results/result20_3.txt", K=(2, 2, 2, 1, 1))
